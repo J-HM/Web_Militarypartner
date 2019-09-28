@@ -32,7 +32,7 @@
 <script>
 	export default {
 		components: {
-			Calendar: () => import ('@/components/calendar/Calendar'),
+			Calendar: () => import ('@/components/select/Calendar'),
 		},
 		
 		data: () => ({

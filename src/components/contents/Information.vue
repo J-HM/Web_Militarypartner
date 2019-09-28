@@ -3,8 +3,6 @@
 		<v-data-iterator 
 			:items="items"
 			:items-per-page="$vuetify.breakpoint.smAndDown ? 15 : 15"
-
-			
 		>
 			<template v-slot:default="props">
 				<v-row>
@@ -17,15 +15,13 @@
 						lg="3"
 						xl="2"
 					>
-						<v-card>
-							<v-card-title>
-								<h4>{{ item.name }}</h4>
-							</v-card-title>
-							<v-divider></v-divider>
-							<v-list dense>
+						<v-card dark elevation=8>
+							<v-card-title>{{ item.name }}</v-card-title>
+							
+							<!-- <v-list dense>
 								<v-list-item>
 									<v-list-item-content>Calories:</v-list-item-content>
-									<v-list-item-content class="align-end">{{ item.calories }}</v-list-item-content>
+									<v-list-item-content>{{ item.calories }}</v-list-item-content>
 								</v-list-item>
 								<v-list-item>
 									<v-list-item-content>Fat:</v-list-item-content>
@@ -51,7 +47,15 @@
 									<v-list-item-content>Iron:</v-list-item-content>
 									<v-list-item-content class="align-end">{{ item.iron }}</v-list-item-content>
 								</v-list-item>
-							</v-list>
+							</v-list> -->
+							<v-card-text align='center'>
+								<v-row>
+									<v-col cols=12>
+										<v-rating color="yellow" background-color="yellow" v-model="item.protein" readonly></v-rating>
+									</v-col>
+								</v-row>
+							</v-card-text>
+							
 						</v-card>
 					</v-col>
 				</v-row>

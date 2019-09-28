@@ -34,7 +34,7 @@
 <script>
 	export default {
 		components: {
-			select: () => import ('@/components/contents/Select')
+			select: () => import ('@/components/select/Select')
 		},
 		
 		data() {
