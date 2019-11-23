@@ -5,7 +5,10 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-		current_page: 1,
+		isFirst: true,
+		
+		currentStartDate: '',
+		currentEndDate: '',
   },
   mutations: {
 

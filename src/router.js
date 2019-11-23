@@ -21,6 +21,13 @@ export default new Router({
       path: '/question',
       name: 'question',
       component: () => import('./components/contents/Question.vue')
-    }
+    },
+		{
+			path: '/manage/:id',
+			name: 'mos',
+			props: true,
+			component: () => import('./components/contents/informations/Mos.vue'),
+		}
+		
   ]
 })

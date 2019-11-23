@@ -8,7 +8,7 @@ export default new Vuetify({
     themes: {
       light: {
         primary: "#009688",
-
+				warning: '#009688'
       },
     },
   },

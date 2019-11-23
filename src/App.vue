@@ -2,6 +2,7 @@
 	<v-app>
 		<core-navigation />
 		<core-content />
+		
 	</v-app>
 </template>
 

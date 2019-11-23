@@ -1,92 +1,201 @@
 <template>
-	<v-simple-table class="mx-auto">
-		<template v-slot:default>
-			<thead>
-				<tr>
-					<th class="text-left">제목</th>
-					<th class="text-left">질문자</th>
-					<th class="text-left">작성일</th>
-					<th class="text-left">조회수</th>
-					<th class="text-left">추천</th>
-					<th class="text-left">답글</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="item in desserts" :key="item.name">
-					<td>{{ item.title }}</td>
-					<td>{{ item.writer }}</td>
-					<td>{{ item.date }}</td>
-					<td>{{ item.views }}</td>
-					<td>{{ item.likes }}</td>
-					<td>{{ item.replies }}</td>
-				</tr>
-			</tbody>
-		</template>
-	</v-simple-table>
+	<div>
+				<v-row align='center' justify='center'>
+					<v-col cols=12>
+						<v-card class='mx-auto' max-width=1600>
+							
+							<v-card-title>
+								<v-icon>mdi-frequently-asked-questions</v-icon>&nbsp;질문 게시판
+								<v-spacer></v-spacer>
+								<v-text-field
+									v-model="search"
+									append-icon="mdi-search-web"
+									label="검색"
+									hide-details
+								></v-text-field>
+							</v-card-title>
+							
+							<v-data-table
+								:loading = 'isLoading'
+								loading-text="글 목록을 불러오는 중입니다..."
+								:headers="headers"
+								:page.sync="page"
+								hide-default-footer
+								@click:row = 'onclick'
+								:items="posts"
+								:items-per-page="12"
+								class="elevation-1"
+								@page-count="pageCount = $event"
+								:search="search"
+								no-results-text = "해당 질문 없음"
+								sort-by = "timeValue"
+							>
+								<template v-slot:item.title="{ item }">
+									{{ cutTitle(item.title) }}
+								</template>
+								<template v-slot:item.time="{ item }">
+									{{ getFuzzy(item.time) }}
+								</template>
+								<template v-slot:item.tag="{ item }">
+									<v-tooltip bottom>
+										<template v-slot:activator="{ on }">
+										<v-chip 
+											v-for='tag in item.tag.slice(0,3)' 
+											:key='tag.id' class='caption' x-small v-on="on" 
+											@click.stop='searchtag(tag)'
+										> {{ tag }} </v-chip>
+										</template>
+										<span v-for='t in item.tag' :key='t.id'>
+											#{{ t }} 
+										</span>
+									</v-tooltip>
+								</template>
+								<template v-slot:footer>
+									<v-pagination v-model="page" :length="pageCount" />
+								</template>
+							</v-data-table>
+						</v-card>
+					</v-col>
+					
+				</v-row>
+
+
+		<v-btn bottom right large fixed fab @click='isSubmitDialogView=true'>
+			<v-icon>mdi-pencil</v-icon>
+		</v-btn>
+		
+		<wirte 
+			:isDialogView='isSubmitDialogView' 
+			@postCompleted='submitClick' 
+			@cancel='isSubmitDialogView = false'
+		/>
+
+		<read
+			:isDialogView='isReadDialogView'
+			:postId='postId'
+			:postTitle='postTitle'
+			:postTag='postTag'
+			:selectedTag = 'selectedTag'
+			@contentCompleted='contentClick'
+			@cancel='reloadPage'
+			@search='searchtag(selectedTag)'
+		/>
+
+	</div>
 </template>
 
 <script>
-	export default {
-		data() {
-			return {
-				desserts: [{
-						title: '어케하나요?',
-						writer: "정현민",
-						date: "방금전",
-						views: "1",
-						replies: "0",
-						likes: "2",
-					},
-					{
-						title: 'questions?',
-						writer: "해군",
-						date: "1분전",
-						views: "12",
-						replies: "0",
-						likes: "3",
-					},
-					{
-						title: '질문 드립니다.?',
-						writer: "국방부",
-						date: "3분전",
-						views: "53",
-						replies: "1",
-						likes: "4",
-					},
-					{
-						title: '답변 부탁드리겠습니다.',
-						writer: "익명",
-						date: "5분전",
-						views: "120",
-						replies: "1",
-						likes: "12",
-					},
-					{
-						title: '질문 제발 빨리',
-						writer: "닉네임",
-						date: "21분 전",
-						views: "123",
-						replies: "1",
-						likes: "42",
-					},
-					{
-						title: '이렇게 될 경우에는?',
-						writer: "병무청",
-						date: "1시간 전",
-						views: "233",
-						replies: "1",
-						likes: "52",
-					},
-					{
-						title: '급한 질문 드립니다.',
-						writer: "육군",
-						date: "1일 전",
-						views: "423",
-						replies: "4",
-						likes: "12",
-					},
-				],
-			}
+import wirte from './questions/Write';
+import read from './questions/Read';
+	
+export default {
+	components: {
+			wirte,
+			read,
 		},
-	}
+	
+    data: () => ({
+			search: "",
+			
+			page: 1,
+			pageCount: 0,
+			
+			posts: [],
+			isLoading: true,
+			headers: [
+				{ text: '제목', align: 'center', sortable: false, value: 'title'},
+				{ text: '답변 수', align: 'center', value: 'answers' },
+				{ text: '조회 수', align: 'center', value: 'views' },
+				{ text: '작성 시간', align: 'center', value: 'time' },
+				{ text: '태그', align: 'center', value: 'tag'}
+				
+			],
+			
+			isSubmitDialogView: false,
+			isReadDialogView: false,
+			
+			postId: '',
+			postTitle: '',
+			postTag: '',
+			selectedTag: '',
+		}),
+	
+		created () {
+			this.getPosts()
+		},
+	
+		methods: {
+			reloadPage () {
+				this.isReadDialogView = false
+				this.getPosts()
+			},
+			searchtag(tag) {
+				this.search = tag
+				this.isReadDialogView = false
+			},
+			submitClick() {
+				this.isSubmitDialogView = false
+				this.getPosts()
+			},
+			contentClick() {
+				this.getPosts()
+			},
+			getPosts(){
+				this.isLoading = true
+				this.$firebase.firestore().collection("QNA").orderBy("time",'desc').get()
+				
+				.then(querySnapshot => {
+					this.posts = []
+					querySnapshot.forEach(doc => {
+						const {title, contents, password, tag, time, views, answers} = doc.data()
+						
+						this.posts.push({
+							title, contents, password, tag, time, views, answers, id: doc.id
+						})
+					})
+					this.isLoading = false
+				})
+				.catch(function(error) {
+					console.log("Error getting document:", error);
+				});
+				
+				
+			},
+			
+			cutTitle(title) {
+				var cuttedTitle;
+				if (title.length > 15) {
+					cuttedTitle = title.substring(0,15) + '...'
+					return cuttedTitle
+				} else {
+					return title
+				}
+			},
+			
+			getFuzzy(date){            
+				var delta = Math.round((+new Date - date.toDate()) / 1000);
+				var minute = 60, hour = minute * 60, day = hour * 24, fuzzy;
+				if (delta < 30) { fuzzy = '방금전' }
+				else if (delta < minute) { fuzzy = delta + ' 초전' } 
+				else if (delta < 2 * minute) { fuzzy = '1분전' } 
+				else if (delta < hour) { fuzzy = Math.floor(delta / minute) + ' 분 전' } 
+				else if (Math.floor(delta / hour) == 1) { fuzzy = '1 시간 전' } 
+				else if (delta < day) { fuzzy = Math.floor(delta / hour) + ' 시간 전' } 
+				else if (delta < day * 2) { fuzzy = '어제' }
+				else if (delta < day * 7) { fuzzy = '며칠전'}
+				else { fuzzy = date.toDate().yyyymmdd() }
+				return fuzzy
+			},
+			
+			onclick(item) {
+				this.isReadDialogView = true
+				this.postId = item.id
+				this.postTitle = item.title
+				this.postTag = item.tag
+				this.$firebase.firestore().collection("QNA").doc(item.id).update({
+					views: this.$firebase.firestore.FieldValue.increment(1)
+				})
+			},
+		},
+  }
 </script>
